@@ -1,63 +1,153 @@
-  body {
-    margin: 0;
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: black;
-    overflow: hidden;
-  }
+body {
+  margin: 0;
+  height: 100vh;
+  height: 100dvh; 
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: black;
+  overflow: hidden;
+}
 
-  .floating-container {
-    transform-origin: center;
-    width: min(300px, 80vw);
-    height: min(300px, 80vw);
-  }
+.floating-container {
+  transform-origin: center;
+  width: min(300px, 70vmin);
+  height: min(300px, 70vmin);
+}
 
-  .glowing-image {
-    width: 100%;
-    height: 100%;
-    animation: pulse 2s ease-in-out infinite;
-    object-fit: cover;
-  }
+.glowing-image {
+  width: 100%;
+  height: 100%;
+  animation: pulse 2s ease-in-out infinite;
+  object-fit: cover;
+}
 
-  .snow-container {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    z-index: 1;
-    opacity: 0.3;
-  }
+.snow-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.3;
+}
 
+.snowflake {
+  position: absolute;
+  background: white;
+  border-radius: 50%;
+  width: 3px;
+  height: 3px;
+  animation: fall linear infinite;
+}
+
+.corner-button {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  width: 50px;
+  height: 50px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  animation: float 3s ease-in-out infinite;
+  transition: transform 0.3s ease;
+  z-index: 2;
+  padding: 0;
+  touch-action: manipulation;
+}
+
+.corner-button:hover {
+  animation: none;
+  transform: scale(1.2);
+}
+
+.corner-button:active {
+  transform: scale(0.95);
+}
+
+.corner-button img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    filter: drop-shadow(0 0 5px rgba(255,0,0,0.6));
+    transform: scale(1);
+  }
+  50% {
+    filter: drop-shadow(0 0 20px rgba(255,0,0,0.8));
+    transform: scale(1.1);
+  }
+  100% {
+    filter: drop-shadow(0 0 5px rgba(255,0,0,0.6));
+    transform: scale(1);
+  }
+}
+
+@keyframes fall {
+  to {
+    transform: translateY(100vh) rotate(360deg);
+  }
+}
+
+@media (max-width: 768px) {
   .snowflake {
-    position: absolute;
-    background: white;
-    border-radius: 50%;
-    width: 3px;
-    height: 3px;
-    animation: fall linear infinite;
+    width: 2px;
+    height: 2px;
+  }
+  
+  .floating-container {
+    width: min(250px, 65vmin);
+    height: min(250px, 65vmin);
+  }
+
+  .corner-button {
+    width: 40px;
+    height: 40px;
   }
 
   @keyframes pulse {
     0% {
-      filter: drop-shadow(0 0 5px rgba(255,0,0,0.6));
+      filter: drop-shadow(0 0 3px rgba(255,0,0,0.6));
       transform: scale(1);
     }
     50% {
-      filter: drop-shadow(0 0 20px rgba(255,0,0,0.8));
-      transform: scale(1.1);
+      filter: drop-shadow(0 0 15px rgba(255,0,0,0.8));
+      transform: scale(1.05);
     }
     100% {
-      filter: drop-shadow(0 0 5px rgba(255,0,0,0.6));
+      filter: drop-shadow(0 0 3px rgba(255,0,0,0.6));
       transform: scale(1);
     }
   }
+}
 
- @keyframes fall {
-    to {
-      transform: translateY(100vh) rotate(360deg);
-    }
+@media (max-width: 320px) {
+  .floating-container {
+    width: min(200px, 60vmin);
+    height: min(200px, 60vmin);
   }
+
+  .corner-button {
+    width: 35px;
+    height: 35px;
+    top: 5px;
+    right: 5px;
+  }
+}
