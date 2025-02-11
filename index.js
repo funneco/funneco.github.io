@@ -64,5 +64,5 @@ function animate() {
 
 window.addEventListener('load', () => {
   animate();
-  createSnow();
+  //createSnow();
 });
