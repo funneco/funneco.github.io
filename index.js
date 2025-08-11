@@ -287,21 +287,13 @@ function togglePlayPause() {
 
 function nextTrack() {
   if (tracks.length === 0) return;
-  let newIndex;
-  do {
-    newIndex = Math.floor(Math.random() * tracks.length);
-  } while (newIndex === currentTrackIndex && tracks.length > 1); // Ensure it's a different track if more than one exists
-  currentTrackIndex = newIndex;
+  currentTrackIndex = (currentTrackIndex + 1) % tracks.length;
   playTrack(currentTrackIndex);
 }
 
 function prevTrack() {
   if (tracks.length === 0) return;
-  let newIndex;
-  do {
-    newIndex = Math.floor(Math.random() * tracks.length);
-  } while (newIndex === currentTrackIndex && tracks.length > 1); // Ensure it's a different track if more than one exists
-  currentTrackIndex = newIndex;
+  currentTrackIndex = (currentTrackIndex - 1 + tracks.length) % tracks.length;
   playTrack(currentTrackIndex);
 }
 
