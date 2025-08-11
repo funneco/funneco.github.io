@@ -8,12 +8,29 @@
   <meta property="og:site_name" content="funne.xyz">
   <meta property="og:url" content="https://funny.xyz">
   <meta property="og:image:type" content="image/png">
-  <meta property="og:description" content="test grin.">
+  <meta property="og:description" content="grin.">
   <meta name="description" content="grin.">
   <link rel="stylesheet" href="/index.css">
   <script src="/index.js"></script>
 </head>
 <body>
+  <div class="audio-player" id="audio-player-container">
+    <div class="audio-symbol" id="audio-symbol">🔊</div>
+    <div class="audio-content" id="audio-content">
+      <div class="track-info">Now Playing: <span id="track-title">Loading....</span></div>
+      <div class="progress-bar-container" id="progress-bar-container">
+        <div class="progress-bar-fill" id="progress-bar-fill"></div>
+      </div>
+      <div class="time-info">
+        <span id="current-time"></span> / <span id="total-time"></span>
+      </div>
+      <div class="controls">
+        <button id="prev-btn">«</button>
+        <button id="play-pause-btn">►</button>
+        <button id="next-btn">»</button>
+      </div>
+    </div>
+  </div>
   <button class="corner-button">
     <a href="https://tenor.com/users/trueemoji">
       <img src="/true.png">
