@@ -3,39 +3,37 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Fullscreen Image (iPhone Safe)</title>
+  <title>Fullscreen Image (iPhone Safe + Fixed)</title>
   <style>
     html, body {
       margin: 0;
       padding: 0;
       height: 100%;
       overflow: hidden;
-      background-color: black; /* fallback for slow loading */
+      background-color: black;
     }
 
-    body {
-      /* The safe area vars prevent overlap with iOS top/bottom bars */
-      padding-top: env(safe-area-inset-top);
-      padding-bottom: env(safe-area-inset-bottom);
-      padding-left: env(safe-area-inset-left);
-      padding-right: env(safe-area-inset-right);
-
+    .bg {
+      position: fixed;
+      top: env(safe-area-inset-top, 0);
+      left: env(safe-area-inset-left, 0);
+      right: env(safe-area-inset-right, 0);
+      bottom: env(safe-area-inset-bottom, 0);
       background: url('the.png') no-repeat center center;
       background-size: cover;
-      background-attachment: fixed;
-      height: 100dvh; /* dynamic viewport height */
-      box-sizing: border-box; /* ensure padding doesn't overflow */
+      z-index: -1;
+      width: 100%;
+      height: calc(100dvh - env(safe-area-inset-top));
     }
 
     @supports (-webkit-touch-callout: none) {
-      body {
-        height: -webkit-fill-available; /* fills correctly on iOS Safari */
+      .bg {
+        height: calc(-webkit-fill-available - env(safe-area-inset-top));
       }
     }
   </style>
 </head>
 <body>
+  <div class="bg"></div>
 </body>
 </html>
-
-
