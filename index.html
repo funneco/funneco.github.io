@@ -11,23 +11,35 @@
   <meta property="og:description" content="grin.">
   <meta name="description" content="grin.">
   <link rel="stylesheet" href="/index.css">
-  <script src="/index.js"></script>
+  <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js" defer></script>
+  <script src="/index.js" defer></script>
+  <script src="/effects.js" defer></script>
 </head>
 <body>
+  <canvas class="ripple-background" id="ripple-background" aria-hidden="true"></canvas>
   <div class="audio-player" id="audio-player-container">
-    <div class="audio-symbol" id="audio-symbol">🔊</div>
+    <button class="audio-symbol" id="audio-symbol" type="button" aria-label="Open music player">
+      <i data-lucide="music-2"></i>
+    </button>
     <div class="audio-content" id="audio-content">
-      <div class="track-info">Now Playing: <span id="track-title">Loading....</span></div>
-      <div class="progress-bar-container" id="progress-bar-container">
+      <div class="player-heading">
+        <span class="player-eyebrow">Now playing</span>
+        <span class="track-title" id="track-title">Loading…</span>
+      </div>
+      <div class="progress-bar-container" id="progress-bar-container" role="slider" aria-label="Seek" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" tabindex="0">
         <div class="progress-bar-fill" id="progress-bar-fill"></div>
       </div>
       <div class="time-info">
-        <span id="current-time"></span> / <span id="total-time"></span>
+        <span id="current-time">0:00</span><span id="total-time">0:00</span>
+      </div>
+      <div class="volume-control">
+        <i class="volume-icon" id="volume-icon" data-lucide="volume-2"></i>
+        <input id="volume-slider" type="range" min="0" max="100" value="80" aria-label="Volume">
       </div>
       <div class="controls">
-        <button id="prev-btn">«</button>
-        <button id="play-pause-btn">►</button>
-        <button id="next-btn">»</button>
+        <button id="prev-btn" type="button" aria-label="Previous track"><i data-lucide="skip-back"></i></button>
+        <button class="play-button" id="play-pause-btn" type="button" aria-label="Play"><i data-lucide="play"></i></button>
+        <button id="next-btn" type="button" aria-label="Next track"><i data-lucide="skip-forward"></i></button>
       </div>
     </div>
   </div>
@@ -36,7 +48,7 @@
       <img src="/true.png">
     </a>
   </button>
-  <div class="floating-container">
-    <img class="glowing-image" src="/grin.png">
+  <div class="floating-container" id="glass-object">
+    <canvas class="glass-canvas" id="glass-canvas" aria-hidden="true"></canvas>
   </div>
 </body></html>

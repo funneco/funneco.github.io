@@ -1,77 +1,15 @@
-function randomBetween(min, max) {
-  return Math.random() * (max - min) + min;
-}
-
-function createSnow() {
-  const snowContainer = document.createElement('div');
-  snowContainer.classList.add('snow-container');
-  document.body.appendChild(snowContainer);
-
-  function createSnowflake() {
-    const snowflake = document.createElement('div');
-    snowflake.classList.add('snowflake');
-    
-    const startX = Math.random() * window.innerWidth;
-    const delay = Math.random() * 10;
-    const size = Math.random() * 3 + 1;
-    
-    snowflake.style.left = `${startX}px`;
-    snowflake.style.width = `${size}px`;
-    snowflake.style.height = `${size}px`;
-    snowflake.style.animationDuration = `${randomBetween(10, 20)}s`;
-    snowflake.style.animationDelay = `-${delay}s`;
-    
-    snowContainer.appendChild(snowflake);
-    
-    snowflake.addEventListener('animationiteration', () => {
-      snowflake.remove();
-      createSnowflake();
-    });
-  }
-
-  const snowflakeCount = window.innerWidth < 768 ? 50 : 100;
-  for (let i = 0; i < snowflakeCount; i++) {
-    createSnowflake();
-  }
-}
-
-function animate() {
-  const container = document.querySelector('.floating-container');
-  let currentY = 0;
-  let currentRotation = 0;
-  
-  function updatePosition() {
-    const nextY = (Math.random() < 0.5) ? randomBetween(-30, -10) : randomBetween(10, 30);
-    const nextRotation = (Math.random() < 0.5) ? randomBetween(-10, -2) : randomBetween(2, 10);
-    
-    container.animate([
-      { transform: `translateY(${currentY}px) rotate(${currentRotation}deg)` },
-      { transform: `translateY(${nextY}px) rotate(${nextRotation}deg)` },
-      { transform: 'translateY(0px) rotate(0deg)' }
-    ], {
-      duration: 3000,
-      easing: 'ease-in-out',
-      fill: 'forwards'
-    }).onfinish = () => {
-      currentY = 0;
-      currentRotation = 0;
-      setTimeout(updatePosition, 100); 
-    };
-  }
-  
-  updatePosition();
-}
-
 let audioContext;
 let currentTrackIndex = 0;
 let tracks = [];
 let currentSource = null;
+let gainNode = null;
 let isPlaying = false;
 let currentTrackDuration = 0;
 let playbackStartTime = 0;
 let animationFrameId = null;
 let currentPlaybackPosition = 0;
 let initialInteractionHandled = false;
+let currentVolume = 0.8;
 
 let playPauseBtn;
 let nextBtn;
@@ -84,11 +22,43 @@ let totalTimeElement;
 let audioPlayerContainer;
 let audioSymbol;
 let audioContent;
+let volumeSlider;
+let volumeIcon;
+
+function refreshIcons() {
+  if (window.lucide) window.lucide.createIcons({ attrs: { 'aria-hidden': 'true' } });
+}
+
+function setPlayIcon(playing) {
+  if (!playPauseBtn) return;
+  playPauseBtn.innerHTML = `<i data-lucide="${playing ? 'pause' : 'play'}"></i>`;
+  playPauseBtn.setAttribute('aria-label', playing ? 'Pause' : 'Play');
+  refreshIcons();
+}
 
 async function initializeAudioContext() {
   if (!audioContext) {
     audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    gainNode = audioContext.createGain();
+    gainNode.gain.value = currentVolume;
+    gainNode.connect(audioContext.destination);
   }
+}
+
+function updateVolumeIcon() {
+  if (!volumeIcon) return;
+  let icon = 'volume-2';
+  if (currentVolume <= 0) icon = 'volume-x';
+  else if (currentVolume < 0.45) icon = 'volume-1';
+  volumeIcon.setAttribute('data-lucide', icon);
+  refreshIcons();
+}
+
+function setVolume(value) {
+  currentVolume = Math.min(1, Math.max(0, value));
+  if (gainNode) gainNode.gain.value = currentVolume;
+  if (volumeSlider) volumeSlider.value = Math.round(currentVolume * 100);
+  updateVolumeIcon();
 }
 
 async function loadAudioList() {
@@ -149,6 +119,7 @@ function updateProgressBar() {
   const progress = Math.min(1, elapsed / currentTrackDuration);
 
   if (progressBarFill) progressBarFill.style.width = `${progress * 100}%`;
+  if (progressBarContainer) progressBarContainer.setAttribute('aria-valuenow', Math.round(progress * 100));
   updateTimeDisplay(elapsed, currentTrackDuration); 
 
   if (progress < 1) {
@@ -160,7 +131,7 @@ function updateProgressBar() {
     cancelAnimationFrame(animationFrameId);
     animationFrameId = null;
     isPlaying = false;
-    if (playPauseBtn) playPauseBtn.textContent = '►'; 
+    setPlayIcon(false);
     if (progressBarFill) progressBarFill.style.width = '0%'; 
     currentTrackDuration = 0;
     playbackStartTime = 0;
@@ -179,12 +150,9 @@ async function playTrack(index, startTime = 0) {
   if (audioContext.state === 'suspended') {
     try {
       await audioContext.resume();
-      console.log("AudioContext resumed during playTrack call.");
     } catch (e) {
-      console.warn("Failed to resume AudioContext. User interaction might still be needed.", e);
-      
       isPlaying = false;
-      if (playPauseBtn) playPauseBtn.textContent = '►';
+      setPlayIcon(false);
       updateTrackTitle("Click to Play");
       return;
     }
@@ -219,11 +187,11 @@ async function playTrack(index, startTime = 0) {
 
     currentSource = audioContext.createBufferSource();
     currentSource.buffer = audioBuffer;
-    currentSource.connect(audioContext.destination);
+    currentSource.connect(gainNode);
     currentSource.start(0, startTime);
 
     isPlaying = true;
-    if (playPauseBtn) playPauseBtn.textContent = '❚❚'; 
+    setPlayIcon(true);
 
    
     updateProgressBar();
@@ -239,7 +207,7 @@ async function playTrack(index, startTime = 0) {
   } catch (error) {
     console.error('Error playing track:', track.url, error);
     isPlaying = false;
-    if (playPauseBtn) playPauseBtn.textContent = '►'; 
+    setPlayIcon(false);
     updateTrackTitle("Error: " + track.title);
     if (progressBarFill) progressBarFill.style.width = '0%'; 
     currentTrackDuration = 0;
@@ -266,7 +234,7 @@ function togglePlayPause() {
       currentSource = null;
     }
     isPlaying = false;
-    if (playPauseBtn) playPauseBtn.textContent = '►'; 
+    setPlayIcon(false);
     if (animationFrameId) {
       cancelAnimationFrame(animationFrameId);
       animationFrameId = null;
@@ -296,18 +264,28 @@ function updateTrackTitle(title) {
   }
 }
 
+function seekToClientX(clientX) {
+  if (!progressBarContainer || currentTrackDuration <= 0) return;
+  const bounds = progressBarContainer.getBoundingClientRect();
+  const ratio = Math.min(1, Math.max(0, (clientX - bounds.left) / bounds.width));
+  currentPlaybackPosition = ratio * currentTrackDuration;
+  progressBarFill.style.width = `${ratio * 100}%`;
+  progressBarContainer.setAttribute('aria-valuenow', Math.round(ratio * 100));
+  updateTimeDisplay(currentPlaybackPosition, currentTrackDuration);
+  if (isPlaying) playTrack(currentTrackIndex, currentPlaybackPosition);
+}
+
 
 async function handleFirstInteraction() {
   if (initialInteractionHandled) return; 
 
-  console.log("First user interaction detected.");
+  // console.log("First user interaction detected.");
 
   await initializeAudioContext(); 
 
   if (audioContext.state === 'suspended') {
     try {
       await audioContext.resume();
-      console.log("AudioContext resumed by global interaction.");
     } catch (e) {
       console.error("Failed to resume AudioContext on first interaction:", e);
      
@@ -343,16 +321,16 @@ window.addEventListener('load', async () => {
   audioPlayerContainer = document.getElementById('audio-player-container');
   audioSymbol = document.getElementById('audio-symbol');
   audioContent = document.getElementById('audio-content');
-
-  
-  animate();
-  createSnow();
+  volumeSlider = document.getElementById('volume-slider');
+  volumeIcon = document.getElementById('volume-icon');
 
   
   await loadAudioList();
 
   
-  if (playPauseBtn) playPauseBtn.textContent = '►';
+  setPlayIcon(false);
+  setVolume(currentVolume);
+  refreshIcons();
   isPlaying = false;
 
  
@@ -370,19 +348,36 @@ window.addEventListener('load', async () => {
     audioPlayerContainer.addEventListener('mouseleave', () => {
       audioPlayerContainer.classList.remove('expanded');
     });
+
+    audioSymbol.addEventListener('click', event => {
+      event.stopPropagation();
+      audioPlayerContainer.classList.toggle('expanded');
+    });
   }
 
   
   if (playPauseBtn) playPauseBtn.addEventListener('click', togglePlayPause);
   if (nextBtn) nextBtn.addEventListener('click', nextTrack);
   if (prevBtn) prevBtn.addEventListener('click', prevTrack);
+  if (volumeSlider) {
+    volumeSlider.addEventListener('input', event => {
+      setVolume(Number(event.target.value) / 100);
+    });
+  }
+  if (progressBarContainer) {
+    progressBarContainer.addEventListener('click', event => seekToClientX(event.clientX));
+    progressBarContainer.addEventListener('keydown', event => {
+      if (!['ArrowLeft', 'ArrowRight'].includes(event.key) || currentTrackDuration <= 0) return;
+      event.preventDefault();
+      const direction = event.key === 'ArrowRight' ? 1 : -1;
+      currentPlaybackPosition = Math.min(currentTrackDuration, Math.max(0, currentPlaybackPosition + direction * 5));
+      const rect = progressBarContainer.getBoundingClientRect();
+      seekToClientX(rect.left + (currentPlaybackPosition / currentTrackDuration) * rect.width);
+    });
+  }
 
   
   document.addEventListener('click', handleFirstInteraction, { once: true });
   document.addEventListener('keydown', handleFirstInteraction, { once: true });
 });
 
-//window.addEventListener('load', () => {
-//  animate();
-  //createSnow();
-//});
